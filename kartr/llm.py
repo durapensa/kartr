@@ -1,4 +1,5 @@
 import os
+import json
 import aiohttp
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
@@ -21,15 +22,23 @@ class LLMManager:
         async with aiohttp.ClientSession() as session:
             async with session.post(self.ollama_url, json={"prompt": prompt, "model": "llama2"}) as response:
                 if response.status == 200:
-                    data = await response.json()
-                    return data['response']
+                    full_response = ""
+                    async for line in response.content:
+                        if line:
+                            data = json.loads(line)
+                            if 'response' in data:
+                                full_response += data['response']
+                    return full_response
                 else:
                     raise Exception(f"Ollama API error: {response.status}")
 
     async def process_claude(self, prompt):
-        response = await self.anthropic_client.completions.create(
-            model="claude-3-sonnet-20240229",
-            prompt=f"Human: {prompt}\n\nAssistant:",
-            max_tokens_to_sample=1000
-        )
-        return response.completion
+        try:
+            message = await self.anthropic_client.completions.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens_to_sample=1000,
+                prompt=f"Human: {prompt}\n\nAssistant:"
+            )
+            return message.completion
+        except Exception as e:
+            return f"Error processing with Claude: {str(e)}"

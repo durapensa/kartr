@@ -7,29 +7,44 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        #output { border: 1px solid #ccc; padding: 10px; margin-top: 20px; min-height: 200px; }
+        #output { border: 1px solid #ccc; padding: 10px; margin-top: 20px; min-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <h1>Kartr Web UI</h1>
-    <form hx-post="/command" hx-target="#output" hx-swap="beforeend" hx-headers='{"Content-Type": "application/json"}'>
+    <form id="command-form">
         <input type="text" name="command" placeholder="Enter a command" required>
         <button type="submit">Send</button>
     </form>
     <div id="output"></div>
 
     <script>
-        document.body.addEventListener('htmx:configRequest', function(event) {
-            if (event.detail.elt.tagName === 'FORM') {
-                var command = event.detail.elt.querySelector('input[name="command"]').value;
-                event.detail.parameters = JSON.stringify({command: command});
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        const outputDiv = document.getElementById('output');
+        const commandForm = document.getElementById('command-form');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.message) {
+                appendToOutput(data.message);
+            } else if (data.command && data.result) {
+                appendToOutput(`Command: ${data.command}\nResult: ${data.result}`);
             }
+        };
+
+        commandForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const command = commandForm.elements.command.value;
+            ws.send(command);
+            commandForm.reset();
         });
-        document.body.addEventListener('htmx:afterRequest', function(event) {
-            if (event.detail.elt.tagName === 'FORM') {
-                event.detail.elt.reset();
-            }
-        });
+
+        function appendToOutput(message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            outputDiv.appendChild(messageElement);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
     </script>
 </body>
 </html>
