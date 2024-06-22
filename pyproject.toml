@@ -1,0 +1,7 @@
+[project]
+name = "kartr"
+version = "0.1.0"
+description = "An AI-driven development environment"
+authors = [{name = "durapensa"}]
+readme = "README.md"
+requires-python = ">=3.11"
