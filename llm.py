@@ -6,7 +6,7 @@ class LLMManager:
 
     async def process(self, prompt):
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.api_url, json={"prompt": prompt, "model": "llama2"}) as response:
+            async with session.post(self.api_url, json={"prompt": prompt, "model": "deepseek-coder-v2"}) as response:
                 if response.status == 200:
                     data = await response.json()
                     return data['response']
