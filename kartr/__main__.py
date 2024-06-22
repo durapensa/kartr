@@ -1,3 +1,4 @@
+import asyncio
 import click
 from kartr.cli import CLI
 from kartr.core import Kartr
@@ -8,7 +9,7 @@ def main(debug):
     """Run the kartr AI-driven development environment."""
     kartr = Kartr(debug=debug)
     cli = CLI(kartr)
-    cli.run()
+    asyncio.run(cli.run())
 
 if __name__ == "__main__":
     main()

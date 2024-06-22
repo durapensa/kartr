@@ -25,9 +25,19 @@ class Kartr:
         elif command == "improve":
             return await self.self_improve()
         else:
-            return f"Unknown command: {command}"
+            return await self.handle_unknown_command(command)
 
-    async def self_improve(self):
-        issues = await self.github_manager.get_issues()
-        improvements = await self.llm_manager.process(f"Analyze these GitHub issues and suggest improvements for kartr: {issues}")
-        return f"Improvement suggestions based on GitHub issues:\n{improvements}"
+    async def handle_unknown_command(self, command):
+        prompt = f"""
+        The user has entered the following command in kartr: "{command}"
+        Kartr is an AI-driven development environment with the following features:
+        - Local-first LLM processing with API fallback
+        - Git-based version control and context management
+        - Modular plugin architecture
+        - Natural language programming and workflow definition
+        - Web-based monitoring, control, and visualization
+        - CLI interface for rapid interaction
+
+        Please provide guidance on how to use kartr effectively, suggesting relevant commands or actions based on the user's input. If the input doesn't match any specific feature, provide general tips on using kartr for AI-driven development.
+        """
+        return await self.llm_manager.process(prompt)
